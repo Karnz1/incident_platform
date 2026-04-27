@@ -15,7 +15,7 @@ def test_health_check_returns_200():
 def test_health_check_response_body():
     response = client.get("/health")
 
-    assert response.json() == "insert health check logic"
+    assert response.json() == {"status": "ok"}
 
 
 def test_ready_returns_200():
