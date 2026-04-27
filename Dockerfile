@@ -6,11 +6,13 @@ RUN useradd -m appuser
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir . && pip check
 
 COPY app ./app
 
 USER appuser
+
+
 
 EXPOSE 8000
 

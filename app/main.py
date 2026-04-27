@@ -5,7 +5,7 @@ app = FastAPI()
 
 @app.get("/health")
 def health_check():
-    return "insert health check logic"
+    return {"status": "ok"}
 
 @app.get("/ready")
 def dep_ready():
