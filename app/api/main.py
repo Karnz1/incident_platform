@@ -2,17 +2,19 @@ from fastapi import FastAPI
 from typing import List
 from contextlib import asynccontextmanager
 from .routes import incident_router
+from .db import init_pg_pool, close_pg_pool, init_redis, close_redis
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Connect to databases
-    # (e.g., engine.connect() or verifying Redis ping)
+    await init_pg_pool()
+    await init_redis()
+
     yield
-    # Shutdown: Clean up connections
-    #await engine.dispose()
-    #await redis_client.close()
+
+    await close_redis()
+    await close_pg_pool()
 
 
 app = FastAPI(lifespan=lifespan)

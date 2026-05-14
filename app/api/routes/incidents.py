@@ -1,4 +1,4 @@
-from fastapi import Depands, APIRouter
+from fastapi import Depends, APIRouter
 
 
 incident_router = APIRouter()
