@@ -1,16 +1,54 @@
 from fastapi import Depends, APIRouter
+import json
+from psycopg import AsyncConnection
+import redis.asyncio as redis
 
+from ..models.schemas import IncidentCreate 
+from ..db import get_pg_db, get_redis_client
+
+#constants
+INCIDENT_REVIEW_QUEUE = "queues:incident_review"
 
 incident_router = APIRouter()
 
 @incident_router.get("/incidents/{id}")
-def get_incident(id: str):
+async def get_incident(id: str):
     return "return specific incident"
 
 
 @incident_router.post("/incidents")
-def create_incident(incident: dict):
-    return "incident created"
+async def create_incident(
+        incident: IncidentCreate,
+        pg: AsyncConnection = Depends(get_pg_db),
+        redis_client: redis.Redis = Depends(get_redis_client)
+):
+    title, description = incident.title, incident.description
+    async with pg.cursor() as cur:
+        await cur.execute(
+            """
+            INSERT INTO incidents (title, description, status)
+            VALUES (%s, %s, %s)
+            RETURNING id
+            """,
+            (
+                title,
+                description,
+                "process_incident"
+            )
+        )
+
+        row = await cur.fetchone()
+
+    await pg.commit()
+
+    incident_id = row["id"]
+
+    await redis_client.rpush(
+        INCIDENT_REVIEW_QUEUE,
+        str(incident_id),
+    )
+    
+    return {"id": incident_id, "status": "queued"}
 
 
 @incident_router.get("/incidents")

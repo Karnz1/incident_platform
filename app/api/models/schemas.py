@@ -35,12 +35,12 @@ class WorkerUpdateIncident(IncidentBase):
     status: str = Field(..., description="the status of the incident")
     sla_deadline: datetime = Field(..., description="The SLA deadline for the incident")
 
+
 class QueueToRedis(BaseModel):
     id: int = Field(..., description="Unique identifier of the incident")
     job_type: str = Field(default="process_incident", description="")
 
-class IncidentResponse(Incident):
-    id: int
+
 
 
 
