@@ -14,10 +14,10 @@ redis_client: redis.Redis | None = None
 
 def get_pg_conninfo() -> str:
     return (
-        f"dbname={os.getenv('PG_DATABASE_NAME')} "
-        f"user={os.getenv('PG_USER')} "
-        f"password={os.getenv('PG_PASSWORD')} "
-        f"host={os.getenv('HOST')} "
+        f"dbname={os.getenv('POSTGRES_DB')} "
+        f"user={os.getenv('POSTGRES_USER')} "
+        f"password={os.getenv('POSTGRES_PASSWORD')} "
+        f"host={os.getenv('PG_HOST')} "
         f"port={os.getenv('PG_PORT', '5432')}"
     )
 
@@ -64,7 +64,7 @@ async def init_redis() -> None:
     global redis_client
 
     redis_client = redis.Redis(
-        host=os.getenv("HOST", "localhost"),
+        host=os.getenv("REDIS_HOST", "localhost"),
         port=int(os.getenv("REDIS_PORT", "6379")),
         password=os.getenv("REDIS_PASSWORD") or None,
         db=int(os.getenv("REDIS_DB", "0")),

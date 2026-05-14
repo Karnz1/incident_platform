@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from typing import List
 from contextlib import asynccontextmanager
-from .routes import incident_router
+from .routes.incidents import incident_router
 from .db import init_pg_pool, close_pg_pool, init_redis, close_redis
 
 
