@@ -1,6 +1,5 @@
 import os
 from typing import AsyncGenerator
-
 import redis.asyncio as redis
 from dotenv import load_dotenv
 from psycopg import AsyncConnection
