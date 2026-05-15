@@ -15,7 +15,7 @@ incident_router = APIRouter()
 async def get_incident(id: str):
     return "return specific incident"
 
-
+# add an incident
 @incident_router.post("/incidents")
 async def create_incident(
         incident: IncidentCreate,

@@ -18,16 +18,18 @@ class IncidentBase(BaseModel):
 
 class Incident(IncidentBase):
     id: int = Field(..., description="Unique identifier of the incident")
+    status: str = Field(default="queued", description="the status of the incident")
+    severity: Optional[Severity] = Field(None, description="The severity of the incident")
+    sla_deadline: datetime = Field(None, description="The SLA deadline for the incident")
 
 
 class IncidentCreate(IncidentBase):
     pass
 
 
-class SaveIncidentDB(Incident):
-    severity: Severity = Field(None, description="The severity of the incident")
+class SaveIncidentDB(IncidentBase):
     status: str = Field(default="queued", description="the status of the incident")
-    sla_deadline: datetime = Field(None, description="The SLA deadline for the incident")
+    
 
 
 class WorkerUpdateIncident(IncidentBase):
