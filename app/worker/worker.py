@@ -2,10 +2,10 @@
 import asyncio
 import logging
 import signal
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import re
 from app.api.db import init_pg_pool, close_pg_pool, init_redis, close_redis
-
+from app.api.models.schemas import Severity
 
 
 logging.basicConfig(
@@ -82,7 +82,7 @@ SEVERITY_RULES = {
 
 
 DEFAULT_SEVERITY = "LOW"
-QUEUE_NAME = "incidents_queue"
+QUEUE_NAME = "queues:incident_review"
 
 shutdown_event = asyncio.Event()
 
@@ -105,37 +105,53 @@ def determine_severity_and_sla(title: str, description: str):
 
 
 async def fetch_incident(conn, incident_id: int):
-    return await conn.fetchrow(
+    cursor = await conn.execute(
         """
         SELECT id, title, description
         FROM incidents
-        WHERE id = $1
+        WHERE id = %s
         """,
-        incident_id,
+        (incident_id,),
     )
+    row = await cursor.fetchone()
+    logger.info("Fetched incident %s from Postgres: %s", incident_id, row)
+    return row
 
 
-async def update_incident(conn, incident_id: int, severity: str, sla_deadline):
-    await conn.execute(
+async def update_incident(conn, incident_id: int, severity: int, sla_deadline: datetime):
+    cursor = await conn.execute(
         """
         UPDATE incidents
         SET
-            status = $1,
-            severity = $2,
-            sla_deadline = $3,
-            processed_at = $4
-        WHERE id = $5
+            status = %s,
+            severity = %s,
+            sla_deadline = %s,
+            processed_at = %s
+        WHERE id = %s
         """,
-        "processed",
-        severity,
-        sla_deadline,
-        datetime.now(timezone.utc),
-        incident_id,
+        (
+            "processed",
+            severity,
+            sla_deadline,
+            datetime.now(timezone.utc),
+            incident_id,
+        ),
     )
+
+    logger.info(
+        "Postgres UPDATE for incident %s affected %s rows",
+        incident_id,
+        cursor.rowcount,
+    )
+
+    if cursor.rowcount != 1:
+        raise RuntimeError(
+            f"Expected to update 1 incident row, updated {cursor.rowcount} for id={incident_id}"
+        )
 
 
 async def process_incident(incident_id: int, pg_pool):
-    async with pg_pool.acquire() as conn:
+    async with pg_pool.connection() as conn:
         incident = await fetch_incident(conn, incident_id)
 
         if incident is None:
@@ -145,26 +161,30 @@ async def process_incident(incident_id: int, pg_pool):
         title = incident["title"] or ""
         description = incident["description"] or ""
 
-        severity, sla_deadline = determine_severity_and_sla(title, description)
+        severity_name, sla_deadline = determine_severity_and_sla(title, description)
+        severity_value = Severity[severity_name].value
+        sla_deadline = datetime.now(timezone.utc) + timedelta(hours=sla_deadline)
 
         await update_incident(
             conn=conn,
             incident_id=incident_id,
-            severity=severity,
+            severity=severity_value,
             sla_deadline=sla_deadline,
         )
+
+        await conn.commit()
 
         logger.info(
             "Processed incident %s with severity=%s sla_deadline=%s",
             incident_id,
-            severity,
+            severity_value,
             sla_deadline,
         )
 
 
 async def worker_loop():
     pg_pool = await init_pg_pool()
-    redis_client = init_redis()
+    redis_client = await init_redis()
 
     logger.info("Incident worker started. Listening on queue: %s", QUEUE_NAME)
 

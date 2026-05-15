@@ -38,6 +38,7 @@ async def init_pg_pool() -> None:
     await pg_pool.open()
     await pg_pool.wait()
 
+    return pg_pool
 
 async def close_pg_pool() -> None:
     global pg_pool
@@ -73,6 +74,7 @@ async def init_redis() -> None:
     )
 
     await redis_client.ping()
+    return redis_client
 
 
 async def close_redis() -> None:
