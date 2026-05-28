@@ -7,6 +7,7 @@ const incidentCountEl = document.getElementById('incidentCount');
 const toastEl = document.getElementById('toast');
 
 let incidents = [];
+let refreshIntervalId = null;
 
 function showToast(message, type = 'info') {
   toastEl.textContent = message;
@@ -25,6 +26,12 @@ function showToast(message, type = 'info') {
 
 function updateIncidentCount() {
   incidentCountEl.textContent = incidents.length;
+}
+
+function formatDateTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
 }
 
 function renderIncidents() {
@@ -48,7 +55,11 @@ function renderIncidents() {
       <div class="card-meta">
         <div>
           <h3>${escapeHtml(incident.title)}</h3>
-          <p class="meta-pill">Status: ${escapeHtml(incident.status)}</p>
+          <div class="meta-row">
+            <span class="meta-pill">Status: ${escapeHtml(incident.status || '—')}</span>
+            <span class="meta-pill" style="border-color: ${incident.severity_color || 'rgba(92, 123, 255, 0.25)'}; color: ${incident.severity_color || '#5c7bff'}">Severity: ${escapeHtml(incident.severity ?? '—')}</span>
+            <span class="meta-pill">SLA: ${escapeHtml(formatDateTime(incident.sla_deadline))}</span>
+          </div>
         </div>
         <button class="delete-btn" data-id="${incident.id}">Delete</button>
       </div>
@@ -64,12 +75,28 @@ function renderIncidents() {
 }
 
 function escapeHtml(value) {
-  return value
+  return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+async function fetchIncidents() {
+  try {
+    const response = await fetch(`${API_BASE}/incidents`);
+
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}`);
+    }
+
+    incidents = await response.json();
+    renderIncidents();
+  } catch (error) {
+    showToast('Unable to load incidents from backend.', 'error');
+    console.error('Fetch incidents error:', error);
+  }
 }
 
 async function createIncident(title, description) {
@@ -86,22 +113,14 @@ async function createIncident(title, description) {
       throw new Error(`Server responded with ${response.status}`);
     }
 
-    const payload = await response.json();
-    const newIncident = {
-      id: String(payload.id ?? Date.now()),
-      title,
-      description,
-      status: payload.status || 'queued',
-    };
-
-    incidents.unshift(newIncident);
-    renderIncidents();
+    await response.json();
+    await fetchIncidents();
     showToast('Incident queued successfully.');
-    return newIncident;
+    return true;
   } catch (error) {
     showToast('Unable to create incident. Check backend connection.', 'error');
     console.error('Create incident error:', error);
-    return null;
+    return false;
   }
 }
 
@@ -115,8 +134,7 @@ async function deleteIncident(id) {
       throw new Error(`Server responded with ${response.status}`);
     }
 
-    incidents = incidents.filter((incident) => incident.id !== id);
-    renderIncidents();
+    await fetchIncidents();
     showToast('Incident deleted.');
   } catch (error) {
     showToast('Delete failed. Verify backend availability.', 'error');
@@ -141,4 +159,5 @@ incidentForm.addEventListener('submit', async (event) => {
   }
 });
 
-renderIncidents();
+fetchIncidents();
+refreshIntervalId = setInterval(fetchIncidents, 5000);
