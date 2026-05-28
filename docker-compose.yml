@@ -1,4 +1,21 @@
 services:
+  front:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    
+    container_name: front
+
+    restart: unless-stopped
+
+    ports:
+      - "8080:80"
+
+    depends_on:
+      - api
+      
+    networks:
+      - network-internal
   api:
     build:
       context: .
