@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Incident Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <div class="hero-panel">
+      <div class="hero-copy">
+        <p class="eyebrow">Incident Platform</p>
+        <h1>Create and manage incidents quickly.</h1>
+        <p class="hero-text">
+          Submit incident reports with a clear title and description, then remove resolved items with a single click.
+        </p>
+      </div>
+      <div class="hero-card">
+        <form id="incidentForm" class="incident-form">
+          <div class="form-header">
+            <h2>New incident</h2>
+            <p>Fill in the details and queue it for review.</p>
+          </div>
+
+          <label class="field-group">
+            <span>Title</span>
+            <input id="titleInput" type="text" placeholder="Enter incident title" required />
+          </label>
+
+          <label class="field-group">
+            <span>Description</span>
+            <textarea id="descriptionInput" rows="5" placeholder="Describe the incident" required></textarea>
+          </label>
+
+          <button class="primary-btn" type="submit">Create incident</button>
+          <p class="form-note">Backend API expected at <strong>http://localhost:8000</strong></p>
+        </form>
+      </div>
+    </div>
+
+    <section class="list-panel">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">Incident list</p>
+          <h2>Pending incidents</h2>
+        </div>
+        <span id="incidentCount" class="badge">0</span>
+      </div>
+
+      <div id="incidentList" class="incident-grid">
+        <div class="empty-state">
+          <h3>No incidents yet</h3>
+          <p>Create your first incident using the form above.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
