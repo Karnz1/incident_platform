@@ -1,8 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
-# A single unified list containing all incidents: Title | Description
 INCIDENTS=(
     # --- CRITICAL ---
     "Database Cluster Crash|The primary database cluster went down at midnight."
