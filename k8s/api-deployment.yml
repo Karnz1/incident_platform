@@ -1,0 +1,21 @@
+apiVersion: apps:/v1
+kind: Deployment
+metadata:
+  labels:
+    name: api-deployment
+spec:
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+        - name: api
+          image: xazmo/inci_plat:api-v1.0
+          ports:
+            containerPort: 8000
+            
+
