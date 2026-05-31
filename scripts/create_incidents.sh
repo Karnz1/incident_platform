@@ -1,7 +1,7 @@
 #!/bin/bash
 
 INCIDENTS=(
-    # --- CRITICAL ---
+    # CRITICAL Incidents
     "Database Cluster Crash|The primary database cluster went down at midnight."
     "Core Infrastructure Failure|We received an alert that the entire system down."
     "Gateway Disconnection|The main API service down signal was triggered."
@@ -16,7 +16,7 @@ INCIDENTS=(
     "Global Access Disruption|This disruption is actively blocking all users."
     "Total Authentication Block|The login form is broken so no one can authenticate."
 
-    # --- HIGH ---
+    # HIGH Incidents
     "Query Performance Drops|The search index response time is extremely slow."
     "Dashboard Lag|Loading metrics on the main screen is very slow today."
     "Network Latency Issues|The overall asset pipeline has heavily degraded."
@@ -30,7 +30,7 @@ INCIDENTS=(
     "Enterprise Account SLA Threat|This bug is affecting a critical customer account."
     "Git Repository Lockout|The engineering deployment pipeline is totally blocked."
 
-    # --- MEDIUM ---
+    # MEDIUM Incidents
     "API Syntax Exception|The logging service caught a runtime unhandled error."
     "UI Rendering Flaw|The layout engine contains a CSS rendering bug."
     "Reporting Discrepancy|Finance flagged a minor accounting calculation issue."
@@ -41,7 +41,7 @@ INCIDENTS=(
     "Worker Queue Dropping|The email service suffered a partial failure."
     "Localized Latency Spikes|The regional delay is only impacting some users."
 
-    # --- LOW ---
+    # LOW Incidents
     "Community Forum Inquiry|A community member submitted a syntax question."
     "Access Provisioning Request|An intern filed a standard sandbox access request."
     "Documentation Shortcoming|We need a clear guide on how to rotate secrets."
