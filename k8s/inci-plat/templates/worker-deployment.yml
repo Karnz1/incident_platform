@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    name: worker-deployment
+    name: "{{ .Release.Name }}-worker"
 spec:
   selector:
     matchLabels:

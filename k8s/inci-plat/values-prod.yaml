@@ -1,0 +1,2 @@
+envName: prod
+replicaCount: 3
