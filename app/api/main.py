@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 from contextlib import asynccontextmanager
 from .routes.incidents import incident_router
 from .routes.health import health_router
