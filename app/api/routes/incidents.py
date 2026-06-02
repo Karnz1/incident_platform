@@ -1,7 +1,6 @@
 from fastapi import Depends, APIRouter, HTTPException
 from psycopg import AsyncConnection
 import redis.asyncio as redis
-
 from ..models.schemas import IncidentCreate, Severity
 from ..db import get_pg_db, get_redis_client
 
@@ -59,7 +58,7 @@ async def create_incident(
 
         row = await cur.fetchone()
 
-    await pg.commit()
+    #await pg.commit()
 
     incident_id = row["id"]
 

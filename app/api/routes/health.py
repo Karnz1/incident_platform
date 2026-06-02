@@ -1,5 +1,5 @@
 
-from fastapi import Depands, APIRouter
+from fastapi import APIRouter
 
 health_router =  APIRouter()
 
