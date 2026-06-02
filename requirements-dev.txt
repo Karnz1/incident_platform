@@ -1,4 +1,6 @@
 pytest
 pytest-asyncio
 httpx
-fastapi[standard]>=0.136.0
+fastapi
+ruff
+pydantic
