@@ -5,20 +5,23 @@ import path from 'path';
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
 const scriptCode = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf8');
 
-function flushPromises() {
+function waitForAsyncWork() {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
 
 describe('Incident Platform Frontend', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
-
-    // Remove the real <script src="app.js"></script> from the HTML.
-    // The test injects app.js manually after mocks are ready.
-    document.documentElement.innerHTML = html.replace(
-      /<script\s+src="app\.js"><\/script>/,
+    // Remove the real app.js script from index.html before putting HTML into jsdom.
+    // We will run app.js manually only after fetch is mocked.
+    const htmlWithoutAppScript = html.replace(
+      /<script\b[^>]*\bsrc=["']app\.js["'][^>]*><\/script>/gi,
       ''
     );
+
+    document.documentElement.innerHTML = htmlWithoutAppScript;
+
+    // Extra safety: remove any script tag that still survived.
+    document.querySelectorAll('script[src]').forEach((script) => script.remove());
 
     const fetchMock = vi.fn(() =>
       Promise.resolve({
@@ -36,11 +39,12 @@ describe('Incident Platform Frontend', () => {
       })
     );
 
-    // jsdom script context needs fetch on window.
     window.fetch = fetchMock;
     global.fetch = fetchMock;
 
-    const wrappedScript = `
+    // Run app.js manually inside the jsdom window.
+    // Attach internal functions to window so tests can call them.
+    window.eval(`
       {
         ${scriptCode}
 
@@ -51,18 +55,16 @@ describe('Incident Platform Frontend', () => {
           clearInterval(refreshIntervalId);
         }
       }
-    `;
-
-    const scriptEl = document.createElement('script');
-    scriptEl.textContent = wrappedScript;
-    document.body.appendChild(scriptEl);
+    `);
   });
 
   afterEach(() => {
-    vi.clearAllTimers();
     vi.restoreAllMocks();
+
     delete window.fetch;
     delete global.fetch;
+
+    document.documentElement.innerHTML = '';
   });
 
   it('initializes the UI with the correct title', () => {
@@ -71,7 +73,7 @@ describe('Incident Platform Frontend', () => {
   });
 
   it('loads incidents from the backend', async () => {
-    await flushPromises();
+    await waitForAsyncWork();
 
     const countBadge = document.getElementById('incidentCount');
     expect(countBadge.textContent).toBe('1');
