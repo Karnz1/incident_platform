@@ -5,3 +5,4 @@ fastapi
 ruff
 pydantic
 psycopg
+redis
