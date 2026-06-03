@@ -59,7 +59,7 @@ async def create_incident(
         row = await cur.fetchone()
 
     #await pg.commit()
-
+    print('empty commit')
     incident_id = row["id"]
 
     await redis_client.rpush(
