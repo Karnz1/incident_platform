@@ -8,7 +8,6 @@ const toastEl = document.getElementById('toast');
 
 let incidents = [];
 let refreshIntervalId = null;
-console.log('hi')
 
 function showToast(message, type = 'info') {
   toastEl.textContent = message;
