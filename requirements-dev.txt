@@ -4,3 +4,4 @@ httpx
 fastapi
 ruff
 pydantic
+psycopg
