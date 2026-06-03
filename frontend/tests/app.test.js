@@ -5,23 +5,40 @@ import path from 'path';
 const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
 const scriptCode = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf8');
 
+function flushPromises() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 describe('Incident Platform Frontend', () => {
   beforeEach(() => {
     vi.useFakeTimers();
 
-    document.open();
-    document.write(html);
-    document.close();
+    // Remove the real <script src="app.js"></script> from the HTML.
+    // The test injects app.js manually after mocks are ready.
+    document.documentElement.innerHTML = html.replace(
+      /<script\s+src="app\.js"><\/script>/,
+      ''
+    );
 
-    window.fetch = vi.fn(() =>
+    const fetchMock = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () =>
           Promise.resolve([
-            { id: 1, title: 'Test', description: 'Test desc' },
+            {
+              id: 1,
+              title: 'Test',
+              description: 'Test desc',
+              status: 'Open',
+              severity: 'Low',
+            },
           ]),
       })
     );
+
+    // jsdom script context needs fetch on window.
+    window.fetch = fetchMock;
+    global.fetch = fetchMock;
 
     const wrappedScript = `
       {
@@ -44,6 +61,8 @@ describe('Incident Platform Frontend', () => {
   afterEach(() => {
     vi.clearAllTimers();
     vi.restoreAllMocks();
+    delete window.fetch;
+    delete global.fetch;
   });
 
   it('initializes the UI with the correct title', () => {
@@ -52,12 +71,11 @@ describe('Incident Platform Frontend', () => {
   });
 
   it('loads incidents from the backend', async () => {
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPromises();
 
     const countBadge = document.getElementById('incidentCount');
     expect(countBadge.textContent).toBe('1');
-    });
+  });
 
   it('displays the toast when showToast is triggered', () => {
     window.showToast('Pipeline Test', 'info');
