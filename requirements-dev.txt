@@ -6,3 +6,5 @@ ruff
 pydantic
 psycopg
 redis
+dotenv
+psycopg-pool
