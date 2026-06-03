@@ -29,7 +29,7 @@ jobs:
         
       - name: Run tests
         run: |
-          PYTHONPATH=./app pytest ./app/api
+          TESTING=1 PYTHONPATH=./app pytest ./app/api
     
   build:
     needs: pre-build    

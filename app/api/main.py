@@ -4,18 +4,20 @@ from contextlib import asynccontextmanager
 from .routes.incidents import incident_router
 from .routes.health import health_router
 from .db import init_pg_pool, close_pg_pool, init_redis, close_redis
+import os
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await init_pg_pool()
-    await init_redis()
+    if os.getenv("TESTING") != "1":
+        await init_pg_pool()
+        await init_redis()
 
     yield
-
-    await close_redis()
-    await close_pg_pool()
+    if os.getenv("TESTING") != "1":
+        await close_redis()
+        await close_pg_pool()
 
 
 app = FastAPI(lifespan=lifespan)
