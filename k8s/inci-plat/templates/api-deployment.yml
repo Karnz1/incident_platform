@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: xazmo/inci_plat:api-v1.0
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           ports:
             containerPort: 8000
 

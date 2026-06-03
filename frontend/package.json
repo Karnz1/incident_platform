@@ -1,0 +1,14 @@
+{
+  "name": "incident-platform-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for the DevOps Incident Platform",
+  "scripts": {
+    "test": "vitest run --environment jsdom",
+    "test:watch": "vitest --environment jsdom",
+    "lint": "npx oxlint"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0",
+    "vitest": "^1.6.0"
+  }
+}
