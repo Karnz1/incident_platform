@@ -83,7 +83,7 @@ SEVERITY_RULES = {
 
 DEFAULT_SEVERITY = "LOW"
 QUEUE_NAME = "queues:incident_review"
-print("hi")
+
 shutdown_event = asyncio.Event()
 
 
