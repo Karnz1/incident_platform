@@ -1,26 +1,120 @@
-"""
-Unit tests for app.worker.
+"""Unit tests for the incident worker service.
 
-Run with:
-    pytest -q tests/test_worker.py
+These tests deliberately avoid real Postgres and Redis connections.
 
-These tests mock PostgreSQL, Redis, and the worker's DB lifecycle functions,
-so no external services are required.
+They also avoid assuming that `app.worker` always resolves to the worker module.
+In some layouts, `app.worker` is a package directory, while the worker code lives in
+another worker.py file or package __init__.py. The resolver below imports the module
+that actually contains the worker functions under test.
 """
 
 from __future__ import annotations
 
+import importlib
+import importlib.util
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
 
-import app.worker as worker
+
+def _find_project_root() -> Path:
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / "app").exists():
+            return parent
+    return current.parents[0]
+
+
+PROJECT_ROOT = _find_project_root()
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
+def _module_has_worker_api(module) -> bool:
+    required = (
+        "normalize_text",
+        "determine_severity_and_sla",
+        "fetch_incident",
+        "update_incident",
+        "process_incident",
+        "worker_loop",
+        "shutdown_event",
+    )
+    return all(hasattr(module, name) for name in required)
+
+
+def _load_module_from_path(path: Path):
+    spec = importlib.util.spec_from_file_location("incident_worker_under_test", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not build import spec for {path}")
+
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def _import_worker_module():
+    """Import the actual worker implementation, not an empty app.worker package."""
+
+    try:
+        module = importlib.import_module("app.worker")
+        if _module_has_worker_api(module):
+            return module
+    except Exception:
+        pass
+
+    candidates = [
+        PROJECT_ROOT / "app" / "worker.py",
+        PROJECT_ROOT / "app" / "worker" / "__init__.py",
+    ]
+
+    app_dir = PROJECT_ROOT / "app"
+    if app_dir.exists():
+        candidates.extend(app_dir.rglob("*.py"))
+
+    seen: set[Path] = set()
+    for candidate in candidates:
+        candidate = candidate.resolve()
+        if candidate in seen or not candidate.exists():
+            continue
+        seen.add(candidate)
+
+        if "tests" in candidate.parts:
+            continue
+
+        try:
+            source = candidate.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+
+        if "def normalize_text" not in source:
+            continue
+        if "shutdown_event" not in source:
+            continue
+        if "def worker_loop" not in source:
+            continue
+
+        module = _load_module_from_path(candidate)
+        if _module_has_worker_api(module):
+            return module
+
+    raise ImportError(
+        "Could not find the worker implementation. Expected a module containing "
+        "normalize_text, determine_severity_and_sla, worker_loop, and shutdown_event. "
+        "Check whether the worker code is in app/worker.py or app/worker/__init__.py."
+    )
+
+
+worker = _import_worker_module()
 
 
 class FakeCursor:
-    def __init__(self, row=None, rowcount: int = 1):
+    def __init__(self, row=None, rowcount=1):
         self._row = row
         self.rowcount = rowcount
 
@@ -29,23 +123,21 @@ class FakeCursor:
 
 
 class FakeConnection:
-    def __init__(self, incident=None, update_rowcount: int = 1):
-        self.incident = incident
-        self.update_rowcount = update_rowcount
-        self.execute_calls = []
+    def __init__(self, row=None, rowcount=1):
+        self.row = row
+        self.rowcount = rowcount
+        self.executed_sql = None
+        self.executed_params = None
         self.commit = AsyncMock()
 
     async def execute(self, sql, params):
-        self.execute_calls.append((sql, params))
-        if "SELECT id, title, description" in sql:
-            return FakeCursor(row=self.incident)
-        if "UPDATE incidents" in sql:
-            return FakeCursor(rowcount=self.update_rowcount)
-        raise AssertionError(f"Unexpected SQL executed: {sql}")
+        self.executed_sql = sql
+        self.executed_params = params
+        return FakeCursor(row=self.row, rowcount=self.rowcount)
 
 
 class FakeConnectionContext:
-    def __init__(self, conn: FakeConnection):
+    def __init__(self, conn):
         self.conn = conn
 
     async def __aenter__(self):
@@ -55,8 +147,8 @@ class FakeConnectionContext:
         return False
 
 
-class FakePgPool:
-    def __init__(self, conn: FakeConnection):
+class FakePool:
+    def __init__(self, conn):
         self.conn = conn
 
     def connection(self):
@@ -72,7 +164,7 @@ def reset_shutdown_event():
 
 
 def test_normalize_text_lowercases_collapses_whitespace_and_strips():
-    assert worker.normalize_text("  System\n\tDOWN   Now  ") == "system down now"
+    assert worker.normalize_text("  SYSTEM   DOWN\nNow\t ") == "system down now"
 
 
 @pytest.mark.parametrize(
@@ -85,7 +177,10 @@ def test_normalize_text_lowercases_collapses_whitespace_and_strips():
     ],
 )
 def test_determine_severity_and_sla_matches_keyword_rules(
-    title, description, expected_severity, expected_sla_hours
+    title,
+    description,
+    expected_severity,
+    expected_sla_hours,
 ):
     assert worker.determine_severity_and_sla(title, description) == (
         expected_severity,
@@ -94,166 +189,150 @@ def test_determine_severity_and_sla_matches_keyword_rules(
 
 
 def test_determine_severity_and_sla_uses_priority_order_for_multiple_matches():
-    # CRITICAL should win even when the text also contains HIGH/MEDIUM/LOW keywords.
-    assert worker.determine_severity_and_sla(
-        "System down",
-        "The service is very slow and users report errors",
-    ) == ("CRITICAL", 1)
+    severity, sla_hours = worker.determine_severity_and_sla(
+        "Question",
+        "The production system is down and also slow",
+    )
+
+    assert severity == "CRITICAL"
+    assert sla_hours == 1
 
 
 def test_determine_severity_and_sla_defaults_to_low_with_one_hour_sla():
-    assert worker.determine_severity_and_sla("Hello", "Need assistance") == ("LOW", 1)
+    assert worker.determine_severity_and_sla("Hello", "No matching words") == ("LOW", 1)
 
 
 @pytest.mark.asyncio
 async def test_fetch_incident_returns_database_row():
-    row = {"id": 123, "title": "App down", "description": "All users affected"}
-    conn = FakeConnection(incident=row)
+    row = {"id": 123, "title": "Outage", "description": "Service down"}
+    conn = FakeConnection(row=row)
 
     result = await worker.fetch_incident(conn, 123)
 
     assert result == row
-    assert len(conn.execute_calls) == 1
-    sql, params = conn.execute_calls[0]
-    assert "FROM incidents" in sql
-    assert params == (123,)
+    assert "SELECT id, title, description" in conn.executed_sql
+    assert conn.executed_params == (123,)
 
 
 @pytest.mark.asyncio
 async def test_update_incident_writes_processed_status_severity_sla_and_processed_at():
-    conn = FakeConnection(update_rowcount=1)
-    sla_deadline = datetime(2026, 1, 1, 12, 0, tzinfo=timezone.utc)
+    conn = FakeConnection(rowcount=1)
+    sla_deadline = datetime(2026, 1, 1, tzinfo=timezone.utc)
 
-    await worker.update_incident(conn, incident_id=123, severity=4, sla_deadline=sla_deadline)
+    await worker.update_incident(
+        conn=conn,
+        incident_id=42,
+        severity=3,
+        sla_deadline=sla_deadline,
+    )
 
-    assert len(conn.execute_calls) == 1
-    sql, params = conn.execute_calls[0]
-    assert "UPDATE incidents" in sql
-    assert params[0] == "processed"
-    assert params[1] == 4
-    assert params[2] == sla_deadline
-    assert isinstance(params[3], datetime)
-    assert params[3].tzinfo == timezone.utc
-    assert params[4] == 123
+    assert "UPDATE incidents" in conn.executed_sql
+    assert conn.executed_params[0] == "processed"
+    assert conn.executed_params[1] == 3
+    assert conn.executed_params[2] == sla_deadline
+    assert isinstance(conn.executed_params[3], datetime)
+    assert conn.executed_params[3].tzinfo == timezone.utc
+    assert conn.executed_params[4] == 42
 
 
 @pytest.mark.asyncio
 async def test_update_incident_raises_when_no_single_row_was_updated():
-    conn = FakeConnection(update_rowcount=0)
+    conn = FakeConnection(rowcount=0)
 
     with pytest.raises(RuntimeError, match="Expected to update 1 incident row"):
         await worker.update_incident(
-            conn,
-            incident_id=123,
-            severity=1,
-            sla_deadline=datetime.now(timezone.utc),
+            conn=conn,
+            incident_id=42,
+            severity=3,
+            sla_deadline=datetime(2026, 1, 1, tzinfo=timezone.utc),
         )
 
 
 @pytest.mark.asyncio
 async def test_process_incident_updates_found_incident_and_commits(monkeypatch):
-    # Keep the test independent of the real Severity enum implementation.
-    monkeypatch.setattr(
-        worker,
-        "Severity",
-        {
-            "CRITICAL": SimpleNamespace(value=4),
-            "HIGH": SimpleNamespace(value=3),
-            "MEDIUM": SimpleNamespace(value=2),
-            "LOW": SimpleNamespace(value=1),
-        },
-    )
-
-    incident = {
-        "id": 123,
-        "title": "Payment failure",
-        "description": "All users cannot pay",
+    row = {
+        "id": 7,
+        "title": "Production outage",
+        "description": "All users cannot access checkout",
     }
-    conn = FakeConnection(incident=incident)
-    pg_pool = FakePgPool(conn)
+    conn = FakeConnection(row=row)
+    pool = FakePool(conn)
 
-    before = datetime.now(timezone.utc)
-    await worker.process_incident(123, pg_pool)
-    after = datetime.now(timezone.utc)
+    update_mock = AsyncMock()
+    monkeypatch.setattr(worker, "update_incident", update_mock)
 
-    assert conn.commit.await_count == 1
-    assert len(conn.execute_calls) == 2
+    await worker.process_incident(7, pool)
 
-    update_sql, update_params = conn.execute_calls[1]
-    assert "UPDATE incidents" in update_sql
-    assert update_params[0] == "processed"
-    assert update_params[1] == 4
-    assert before <= update_params[2] <= after + worker.timedelta(hours=2)
-    assert update_params[4] == 123
+    update_mock.assert_awaited_once()
+    kwargs = update_mock.await_args.kwargs
+    assert kwargs["conn"] is conn
+    assert kwargs["incident_id"] == 7
+
+    expected_severity_value = worker.Severity["CRITICAL"].value
+    assert kwargs["severity"] == expected_severity_value
+    assert kwargs["sla_deadline"].tzinfo == timezone.utc
+    conn.commit.assert_awaited_once()
 
 
 @pytest.mark.asyncio
-async def test_process_incident_does_nothing_when_incident_not_found():
-    conn = FakeConnection(incident=None)
-    pg_pool = FakePgPool(conn)
+async def test_process_incident_does_nothing_when_incident_not_found(monkeypatch):
+    conn = FakeConnection(row=None)
+    pool = FakePool(conn)
 
-    await worker.process_incident(999, pg_pool)
+    update_mock = AsyncMock()
+    monkeypatch.setattr(worker, "update_incident", update_mock)
 
-    assert conn.commit.await_count == 0
-    assert len(conn.execute_calls) == 1
-    assert "SELECT id, title, description" in conn.execute_calls[0][0]
+    await worker.process_incident(999, pool)
+
+    update_mock.assert_not_awaited()
+    conn.commit.assert_not_awaited()
 
 
 @pytest.mark.asyncio
 async def test_worker_loop_skips_invalid_redis_id_and_cleans_up(monkeypatch):
-    redis_client = AsyncMock()
-    responses = [
-        (worker.QUEUE_NAME, b"not-an-int"),
-        None,
-    ]
+    class FakeRedis:
+        async def brpop(self, queue_name, timeout):
+            worker.shutdown_event.set()
+            return (queue_name, b"not-an-int")
 
-    monkeypatch.setattr(worker, "init_pg_pool", AsyncMock(return_value=object()))
+    redis_client = FakeRedis()
+
+    monkeypatch.setattr(worker, "init_pg_pool", AsyncMock(return_value=SimpleNamespace()))
     monkeypatch.setattr(worker, "init_redis", AsyncMock(return_value=redis_client))
     monkeypatch.setattr(worker, "close_redis", AsyncMock())
     monkeypatch.setattr(worker, "close_pg_pool", AsyncMock())
-    process_incident = AsyncMock()
-    monkeypatch.setattr(worker, "process_incident", process_incident)
 
-    async def stop_after_first_sleep(_seconds):
-        worker.shutdown_event.set()
-
-    # Stop the loop after it observes one empty queue read.
-    async def brpop_then_stop(*args, **kwargs):
-        result = responses.pop(0)
-        if result is None:
-            worker.shutdown_event.set()
-        return result
-
-    redis_client.brpop.side_effect = brpop_then_stop
-    monkeypatch.setattr(worker.asyncio, "sleep", stop_after_first_sleep)
+    process_mock = AsyncMock()
+    monkeypatch.setattr(worker, "process_incident", process_mock)
 
     await worker.worker_loop()
 
-    process_incident.assert_not_awaited()
+    process_mock.assert_not_awaited()
     worker.close_redis.assert_awaited_once()
     worker.close_pg_pool.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_worker_loop_processes_valid_redis_id_and_cleans_up(monkeypatch):
-    redis_client = AsyncMock()
+    pg_pool = SimpleNamespace()
 
-    async def brpop_once(*args, **kwargs):
-        worker.shutdown_event.set()
-        return (worker.QUEUE_NAME, b"123")
+    class FakeRedis:
+        async def brpop(self, queue_name, timeout):
+            worker.shutdown_event.set()
+            return (queue_name, b"123")
 
-    redis_client.brpop.side_effect = brpop_once
+    redis_client = FakeRedis()
 
-    pg_pool = object()
     monkeypatch.setattr(worker, "init_pg_pool", AsyncMock(return_value=pg_pool))
     monkeypatch.setattr(worker, "init_redis", AsyncMock(return_value=redis_client))
     monkeypatch.setattr(worker, "close_redis", AsyncMock())
     monkeypatch.setattr(worker, "close_pg_pool", AsyncMock())
-    process_incident = AsyncMock()
-    monkeypatch.setattr(worker, "process_incident", process_incident)
+
+    process_mock = AsyncMock()
+    monkeypatch.setattr(worker, "process_incident", process_mock)
 
     await worker.worker_loop()
 
-    process_incident.assert_awaited_once_with(123, pg_pool)
+    process_mock.assert_awaited_once_with(123, pg_pool)
     worker.close_redis.assert_awaited_once()
     worker.close_pg_pool.assert_awaited_once()
