@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 // 1. Load file contents
-const html = fs.readFileSync(path.resolve(__dirname, './index.html'), 'utf8');
-const scriptCode = fs.readFileSync(path.resolve(__dirname, './app.js'), 'utf8');
+const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
+const scriptCode = fs.readFileSync(path.resolve(__dirname, '../app.js'), 'utf8');
 
 describe('Incident Platform Frontend', () => {
   beforeEach(() => {
