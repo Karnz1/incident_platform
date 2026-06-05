@@ -79,5 +79,5 @@ jobs:
 
       - name: Set new image tag in helm config
         run: |
-          IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          export IMAGE_TAG="sha-${GITHUB_SHA::7}"
           yq -i '.worker.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml

@@ -6,6 +6,10 @@ on:
     branches: [ main ]
     paths:
         - 'app/api/**'
+
+permissions:
+  contents: read
+
 jobs:
   pre-build:
     runs-on: ubuntu-latest
@@ -38,6 +42,9 @@ jobs:
     environment: dev
     env:
       DOCKER_METADATA_SHORT_SHA_LENGTH: 7
+    
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -76,5 +83,14 @@ jobs:
       
       - name: Set new image tag in helm config
         run: |
-          IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          export IMAGE_TAG="sha-${GITHUB_SHA::7}"
           yq -i '.api.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
+
+      - name: Commit updated Helm values
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]"
+
+          git add k8s/inci-plat/values.yaml
+          git commit -m "UPDATED api image tag"
+          git push
