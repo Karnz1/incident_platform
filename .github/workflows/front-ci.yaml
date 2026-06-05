@@ -14,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: dev
 
-    permissions:
-      contents: write
 
     defaults:
       run:
@@ -46,6 +44,9 @@ jobs:
 
     env:
       DOCKER_METADATA_SHORT_SHA_LENGTH: 7
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
