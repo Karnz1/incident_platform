@@ -56,7 +56,7 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata@v6
+        uses: docker/metadata-action@v6
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/incident-front
           tags: |
