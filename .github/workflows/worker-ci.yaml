@@ -6,6 +6,9 @@ on:
     paths:
       - "app/worker/**"
 
+permissions:
+    contents: read
+
 jobs:
   pre-build:
     runs-on: ubuntu-latest
@@ -39,6 +42,9 @@ jobs:
 
     env:
       DOCKER_METADATA_SHORT_SHA_LENGTH: 7
+
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -81,3 +87,12 @@ jobs:
         run: |
           export IMAGE_TAG="sha-${GITHUB_SHA::7}"
           yq -i '.worker.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
+
+      - name: Commit updated Helm values
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]"
+
+          git add k8s/inci-plat/values.yaml
+          git commit -m "UPDATED worker image tag"
+          git push

@@ -5,11 +5,17 @@ on:
     branches: [ main ]
     paths: 
       - "frontend/**"
+ 
+permissions:
+  contents: read
 
 jobs:
   pre-build:
     runs-on: ubuntu-latest
     environment: dev
+
+    permissions:
+      contents: write
 
     defaults:
       run:
@@ -80,7 +86,14 @@ jobs:
       - name: Set new image tag in helm config
         run: |
           export IMAGE_TAG="sha-${GITHUB_SHA::7}"
-          yq -i '.frontend.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
-          cat k8s/inci-plat/values.yaml
-          git diff
+          yq -i '.frontend.image.tag = strenv(IMAGE_TAG)' ../k8s/inci-plat/values.yaml
+      
+      - name: Commit updated Helm values
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]"
+
+          git add k8s/inci-plat/values.yaml
+          git commit -m "UPDATED front image tag"
+          git push
     
