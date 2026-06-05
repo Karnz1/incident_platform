@@ -1,6 +1,2 @@
 envName: dev
 replicaCount: 1
-image:
-  repository: xazmo/inci-plat
-  pullPolicy: IfNotPresent
-  tag: "c1a1dee62a79c89272d8b2862806effcb2d43c8f"

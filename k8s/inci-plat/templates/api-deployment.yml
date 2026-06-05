@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
           ports:
             containerPort: 8000
 

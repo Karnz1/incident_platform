@@ -36,6 +36,8 @@ jobs:
     needs: pre-build    
     runs-on: ubuntu-latest
     environment: dev
+    env:
+      DOCKER_METADATA_SHORT_SHA_LENGTH: 7
 
     steps:
       - name: Checkout code
@@ -71,3 +73,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+      
+      - name: Set new image tag in helm config
+        run: |
+          IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          yq -i '.api.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml

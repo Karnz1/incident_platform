@@ -22,7 +22,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-            node-version: '20'
+            node-version: ${{ vars.NODE_VERSION }}
 
       - name: Install dependencies
         run: npm install
@@ -37,6 +37,9 @@ jobs:
     needs: pre-build
     runs-on: ubuntu-latest
     environment: dev
+
+    env:
+      DOCKER_METADATA_SHORT_SHA_LENGTH: 7
 
     steps:
       - name: Checkout code
@@ -74,4 +77,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
     
+      - name: Set new image tag in helm config
+        run: |
+          IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          yq -i '.front.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
     

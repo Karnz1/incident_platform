@@ -15,4 +15,4 @@ spec:
     spec:
       containers:
         - name: worker
-          image: xazmo/inci_plat:worker-v1.0
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag | default .Chart.AppVersion }}"
