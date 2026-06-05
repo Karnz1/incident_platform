@@ -79,8 +79,8 @@ jobs:
     
       - name: Set new image tag in helm config
         run: |
-          IMAGE_TAG="sha-${GITHUB_SHA::7}"
-          yq -i '.front.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
+          export IMAGE_TAG="sha-${GITHUB_SHA::7}"
+          yq -i '.frontend.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
           cat k8s/inci-plat/values.yaml
           git diff
     
