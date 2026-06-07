@@ -1,5 +1,4 @@
-apiVersion: apps/v1
-kind: Service
+apiVersion: v1
 metadata:
   name: redis-service
 spec:
