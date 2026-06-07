@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: api-deployment
   labels:
     name: "{{ .Release.Name }}-api"
 spec:

@@ -1,7 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ .Release.Name }}-front"
+  name: front-deployment
+  labels:
+    name: "{{ .Release.Name }}-front"
 spec:
   selector:
     matchLabels:
