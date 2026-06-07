@@ -1,18 +1,3 @@
 envName: dev
 replicaCount: 1
 
-api:
-  image:
-    repository: xazmo/incident-api
-    pullPolicy: IfNotPresent
-    tag: "sha-2ad6d66"
-frontend:
-  image:
-    repository: xazmo/incident-front
-    pullPolicy: IfNotPresent
-    tag: "c1a1dee62a79c89272d8b2862806effcb2d43c8f"
-worker:
-  image:
-    repository: xazmo/incident-worker
-    pullPolicy: IfNotPresent
-    tag: "sha-451af1d"
