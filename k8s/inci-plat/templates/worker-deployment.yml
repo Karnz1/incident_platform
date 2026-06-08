@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: worker
-  replicas: 2
+  replicas: {{ .Values.worker.replicaCount }}
   template:
     metadata:
       labels:

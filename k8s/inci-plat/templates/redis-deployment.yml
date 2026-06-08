@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+  labels:
+    name: "{{ .Release.Name }}-redis"
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  replicaCount: {{ .Values.redis.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+       - name: redis
+         image: redis:8.8.0-alpine
+         ports:
+           containerPort: 6379
+         envFrom:
+           - configMapRef:
+               name: redis-config
+

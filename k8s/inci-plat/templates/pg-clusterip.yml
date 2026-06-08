@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: pg-service
 spec:
-  type: ClusterIP
+  clusterIP: None
   selector:
     app: pg
   ports:

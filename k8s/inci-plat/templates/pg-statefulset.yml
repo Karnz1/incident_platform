@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: pg-statefulset
+  labels:
+    name: "{{ .Release.Name }}-pg"
+spec:
+  serviceName: pg-service
+  replicas: {{ .Values.postgres.replicaCount }}
+  selector:
+    matchLabels:
+      app: pg
+  template:
+    metadata:
+      labels:
+         app: pg
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: pg
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          envFrom:
+           - secretRef:
+               name: pg-secret
+           - configMapRef:
+               name: pg-config
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata #avoids error on empty mount point upon initialization
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 10Gi

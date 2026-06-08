@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+data:
+  REDIS_HOST: redis_db
+  REDIS_DB: "0"
+  REDIS_MAX_CONNECTIONS: "10"
