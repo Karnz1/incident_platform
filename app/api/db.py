@@ -7,7 +7,7 @@ from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
 load_dotenv()
-print('asdfasdf')
+print('test')
 pg_pool: AsyncConnectionPool | None = None
 redis_client: redis.Redis | None = None
 

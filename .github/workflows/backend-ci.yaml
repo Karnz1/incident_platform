@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: helm-values-update
-  cancel-in-progress: false
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   pre-build:
@@ -97,4 +97,8 @@ jobs:
 
           git add k8s/inci-plat/values.yaml
           git commit -m "UPDATED api image tag"
-          git pull --rebase origin main && git push
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push && break
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
