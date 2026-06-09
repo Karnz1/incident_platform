@@ -6,15 +6,13 @@ api:
     pullPolicy: IfNotPresent
     tag: "sha-2ad6d66"
   replicaCount: 2
-
 #Frontend Values
 frontend:
   image:
     repository: xazmo/incident-front
     pullPolicy: IfNotPresent
-    tag: "sha-0563b9f"
+    tag: "sha-22e9c30"
   replicaCount: 2
-
 #Worker Values
 worker:
   image:
@@ -22,11 +20,9 @@ worker:
     pullPolicy: IfNotPresent
     tag: "sha-451af1d"
   replicaCount: 1
-
 #Redis Values
 redis:
   replicaCount: 1
-
 #Postgres Values
 postgres:
   replicaCount: 1
