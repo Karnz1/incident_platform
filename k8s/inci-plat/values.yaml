@@ -18,7 +18,7 @@ worker:
   image:
     repository: xazmo/incident-worker
     pullPolicy: IfNotPresent
-    tag: "sha-4193013"
+    tag: "sha-82428f9"
   replicaCount: 1
 #Redis Values
 redis:
