@@ -7,7 +7,11 @@ on:
       - "app/worker/**"
 
 permissions:
-    contents: read
+  contents: read
+
+concurrency:
+  group: helm-values-update
+  cancel-in-progress: false
 
 jobs:
   pre-build:
@@ -95,4 +99,4 @@ jobs:
 
           git add k8s/inci-plat/values.yaml
           git commit -m "UPDATED worker image tag"
-          git push
+          git pull --rebase origin main && git push

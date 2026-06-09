@@ -7,7 +7,7 @@ import re
 from app.api.db import init_pg_pool, close_pg_pool, init_redis, close_redis
 from app.api.models.schemas import Severity
 
-print('gga')
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",

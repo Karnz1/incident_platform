@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: helm-values-update
+  cancel-in-progress: false
+  
 jobs:
   pre-build:
     runs-on: ubuntu-latest
@@ -96,5 +100,5 @@ jobs:
 
           git add k8s/inci-plat/values.yaml
           git commit -m "UPDATED front image tag"
-          git push
+          git pull --rebase origin main && git push
     
