@@ -11,7 +11,7 @@ frontend:
   image:
     repository: xazmo/incident-front
     pullPolicy: IfNotPresent
-    tag: "sha-22e9c30"
+    tag: "sha-4193013"
   replicaCount: 2
 #Worker Values
 worker:
