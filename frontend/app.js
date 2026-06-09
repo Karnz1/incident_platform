@@ -8,7 +8,7 @@ const toastEl = document.getElementById('toast');
 
 let incidents = [];
 let refreshIntervalId = null;
-
+console.log('fdf')
 function showToast(message, type = 'info') {
   toastEl.textContent = message;
   toastEl.className = `toast visible`;
