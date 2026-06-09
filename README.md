@@ -107,7 +107,7 @@ match it.
 ```mermaid
 flowchart LR
     CI[CI: lint to test to build] -->|push image| DH[(Docker Hub)]
-    CI -->|update image tag in Helm values| GR[GitOps repo]
+    CI -->|update image tag in Helm values| GR[Git repo]
     GR --> Argo[ArgoCD]
     Argo -->|sync| K8s[Kubernetes - dev namespace]
 ```
