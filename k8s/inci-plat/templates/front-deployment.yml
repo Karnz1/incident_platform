@@ -5,10 +5,11 @@ metadata:
   labels:
     name: "{{ .Release.Name }}-front"
 spec:
+  revisionHistoryLimit: {{ .Values.frontend.revisionHistoryLimit }}
+  replicas: {{ .Values.frontend.replicaCount }}
   selector:
     matchLabels:
       app: front
-  replicas: {{ .Values.frontend.replicaCount }}
   template:
     metadata:
       labels:

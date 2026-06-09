@@ -5,10 +5,11 @@ metadata:
   labels:
     name: "{{ .Release.Name }}-worker"
 spec:
+  revisionHistoryLimit: {{ .Values.frontend.revisionHistoryLimit }}
+  replicas: {{ .Values.worker.replicaCount }}
   selector:
     matchLabels:
       app: worker
-  replicas: {{ .Values.worker.replicaCount }}
   template:
     metadata:
       labels:

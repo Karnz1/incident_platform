@@ -9,7 +9,7 @@ data:
   PG_PORT: "5432"
   PG_POOL_MIN: "1"
   PG_POOL_MAX: "10"
-  REDIS_HOST: "redis"
+  REDIS_HOST: "redis-service"
   REDIS_PORT: "6379"
   REDIS_DB: "0"
   REDIS_MAX_CONNECTIONS: "10"
