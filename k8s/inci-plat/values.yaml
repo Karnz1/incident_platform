@@ -6,6 +6,7 @@ api:
     pullPolicy: IfNotPresent
     tag: "sha-82428f9"
   replicaCount: 2
+  revisionHistoryLimit: 3
 #Frontend Values
 frontend:
   image:
@@ -13,6 +14,7 @@ frontend:
     pullPolicy: IfNotPresent
     tag: "sha-82428f9"
   replicaCount: 2
+  revisionHistoryLimit: 3
 #Worker Values
 worker:
   image:
@@ -20,6 +22,7 @@ worker:
     pullPolicy: IfNotPresent
     tag: "sha-82428f9"
   replicaCount: 1
+  revisionHistoryLimit: 3
 #Redis Values
 redis:
   replicaCount: 1
