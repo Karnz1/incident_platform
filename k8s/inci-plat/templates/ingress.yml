@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: incident-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: dev.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service: { name: front-clusterip, port: { number: 8080 } }
