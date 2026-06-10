@@ -21,6 +21,6 @@ spec:
           imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
           envFrom:
             - secretRef:
-              name: api-secret
+                name: api-secret
             - configMapRef:
-              name: api-config
+                name: api-config
