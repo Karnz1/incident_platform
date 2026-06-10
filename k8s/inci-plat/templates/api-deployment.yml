@@ -5,6 +5,7 @@ metadata:
   labels:
     name: "{{ .Release.Name }}-api"
 spec:
+  revisionHistoryLimit: {{ .Values.api.revisionHistoryLimit }}
   selector:
     matchLabels:
       app: api

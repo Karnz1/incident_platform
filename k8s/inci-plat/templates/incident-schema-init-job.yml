@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: incidents-schema-init
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 10
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: postgres:16
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              until pg_isready; do echo "waiting for postgres..."; sleep 2; done
+              psql -v ON_ERROR_STOP=1 -f /sql/schema.sql
+          env:
+            - name: PGHOST
+              value: pg-service
+            
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef: { name: pg-secret, key: POSTGRES_USER }
+
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef: { name: pg-secret, key: POSTGRES_PASSWORD }
+
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef: { name: pg-secret, key: POSTGRES_DB }
+
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+
+      volumes:
+        - name: sql
+          configMap:
+            name: incident-schema
+              
