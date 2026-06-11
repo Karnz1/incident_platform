@@ -58,7 +58,7 @@ async def create_incident(
 
         row = await cur.fetchone()
 
-    #await pg.commit()
+    await pg.commit()
     incident_id = row["id"]
 
     await redis_client.rpush(
