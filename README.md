@@ -150,12 +150,13 @@ change to a running deployment in dev.
 - ✅ Per-service CI pipelines that build and push images to Docker Hub
 - ✅ Automated update of `values.yaml` in the GitOps repo
 
-### Phase 3 — Kubernetes + GitOps 🚧
-- 🚧 Helm charts / Kubernetes manifests for all services
-- 🚧 ArgoCD auto-sync to the dev namespace
+### Phase 3 — Kubernetes + GitOps ✅
+- ✅ Helm charts / Kubernetes manifests for all services
+- ✅ ArgoCD auto-sync to the dev namespace
+- ✅ Adding ingress - enabling traffic from my machine to the application
 
 ### Phase 4 — Environment Promotion ⬜
-- ⬜ Promotion pipeline: dev → staging → prod
+- 🚧 Promotion pipeline: dev → staging → prod
 
 ### Phase 5 — Observability ⬜
 - ⬜ Real Prometheus metrics from the API and worker (`/metrics`)
