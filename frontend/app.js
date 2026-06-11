@@ -1,4 +1,4 @@
-const API_BASE = 'dev.local/api';
+const API_BASE = 'dev.local/api:8000';
 const incidentForm = document.getElementById('incidentForm');
 const titleInput = document.getElementById('titleInput');
 const descriptionInput = document.getElementById('descriptionInput');
