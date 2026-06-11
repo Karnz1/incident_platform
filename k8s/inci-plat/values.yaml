@@ -4,7 +4,7 @@ api:
   image:
     repository: xazmo/incident-api
     pullPolicy: IfNotPresent
-    tag: "sha-191d650"
+    tag: "sha-250423c"
   replicaCount: 2
   revisionHistoryLimit: 3
 #Frontend Values
