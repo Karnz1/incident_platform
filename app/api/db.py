@@ -1,6 +1,9 @@
 import os
 from typing import AsyncGenerator
 import redis.asyncio as redis
+from redis.asyncio.retry import Retry
+from redis.backoff import ExponentialBackoff
+from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError as RedisTimeoutError
 from dotenv import load_dotenv
 from psycopg import AsyncConnection
 from psycopg.rows import dict_row
@@ -71,6 +74,12 @@ async def init_redis() -> None:
         db=int(os.getenv("REDIS_DB", "0")),
         decode_responses=True,
         max_connections=int(os.getenv("REDIS_MAX_CONNECTIONS", "10")),
+        socket_timeout=30,            # must exceed the brpop block timeout (5s)
+        socket_connect_timeout=5,
+        socket_keepalive=True,
+        health_check_interval=30,     # detect/repair half-dead connections
+        retry=Retry(ExponentialBackoff(), retries=3),
+        retry_on_error=[RedisConnectionError, RedisTimeoutError],
     )
 
     await redis_client.ping()
