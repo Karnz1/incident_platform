@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: redis-config
 data:
-  REDIS_HOST: redis_db
+  REDIS_HOST: redis-service
   REDIS_DB: "0"
   REDIS_MAX_CONNECTIONS: "10"
