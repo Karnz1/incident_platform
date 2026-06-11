@@ -57,7 +57,7 @@ def test_create_incident_inserts_to_db_and_pushes_to_redis(client, fake_pg, fake
     )
 
     # create_incident currently commits explicitly.
-    assert fake_pg.commit_calls == 0
+    assert fake_pg.commit_calls == 1
 
     assert fake_redis.pushed_items == [
         {
