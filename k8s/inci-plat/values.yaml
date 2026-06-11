@@ -12,7 +12,7 @@ frontend:
   image:
     repository: xazmo/incident-front
     pullPolicy: IfNotPresent
-    tag: "sha-82428f9"
+    tag: "sha-49c15bb"
   replicaCount: 2
   revisionHistoryLimit: 3
 #Worker Values
