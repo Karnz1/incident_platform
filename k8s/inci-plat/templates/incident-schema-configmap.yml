@@ -16,5 +16,5 @@ data:
       severity       SMALLINT,
       sla_deadline   TIMESTAMPTZ,
       created_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
-      processed_time TIMESTAMPTZ
+      processed_at   TIMESTAMPTZ
     );
