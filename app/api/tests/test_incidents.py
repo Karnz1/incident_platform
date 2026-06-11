@@ -37,7 +37,7 @@ def test_create_incident_inserts_to_db_and_pushes_to_redis(client, fake_pg, fake
         "description": "Production database is not responding",
     }
 
-    response = client.post("/incidents", json=payload)
+    response = client.post("/api/incidents", json=payload)
 
     assert response.status_code == 200
     assert response.json() == {
@@ -73,7 +73,7 @@ def test_create_incident_rejects_short_title(client):
         "description": "Production database is not responding",
     }
 
-    response = client.post("/incidents", json=payload)
+    response = client.post("/api/incidents", json=payload)
 
     assert response.status_code == 422
 
@@ -84,7 +84,7 @@ def test_create_incident_rejects_short_description(client):
         "description": "no",
     }
 
-    response = client.post("/incidents", json=payload)
+    response = client.post("/api/incidents", json=payload)
 
     assert response.status_code == 422
 
@@ -120,7 +120,7 @@ def test_get_all_incidents_returns_rows_with_severity_names_and_colors(client, f
         },
     ]
 
-    response = client.get("/incidents")
+    response = client.get("/api/incidents")
 
     assert response.status_code == 200
 
@@ -164,7 +164,7 @@ def test_get_all_incidents_returns_rows_with_severity_names_and_colors(client, f
 def test_delete_incident_deletes_existing_incident(client, fake_pg):
     fake_pg.fetchone_result = {"id": 10}
 
-    response = client.delete("/incidents/10")
+    response = client.delete("/api/incidents/10")
 
     assert response.status_code == 200
     assert response.json() == {"id": 10}
@@ -181,7 +181,7 @@ def test_delete_incident_deletes_existing_incident(client, fake_pg):
 def test_delete_incident_returns_404_when_incident_does_not_exist(client, fake_pg):
     fake_pg.fetchone_result = None
 
-    response = client.delete("/incidents/999")
+    response = client.delete("/api/incidents/999")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Incident not found"}
