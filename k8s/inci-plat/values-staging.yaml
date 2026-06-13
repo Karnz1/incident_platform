@@ -1,2 +1,35 @@
 envName: staging
-replicaCount: 2
+api:
+  image:
+    repository: xazmo/incident-api
+    pullPolicy: IfNotPresent
+    tag: "sha-250423c"
+  replicaCount: 2
+  revisionHistoryLimit: 4
+#Frontend Values
+frontend:
+  image:
+    repository: xazmo/incident-front
+    pullPolicy: IfNotPresent
+    tag: "sha-3932046"
+  replicaCount: 2
+  revisionHistoryLimit: 4
+#Worker Values
+worker:
+  image:
+    repository: xazmo/incident-worker
+    pullPolicy: IfNotPresent
+    tag: "sha-82428f9"
+  replicaCount: 2
+  revisionHistoryLimit: 4
+#Redis Values
+redis:
+  replicaCount: 1
+#Postgres Values
+postgres:
+  replicaCount: 1
+
+
+ingress:
+  rps: 10
+  hostname: staging.local

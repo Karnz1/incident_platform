@@ -1,0 +1,31 @@
+kind: ApplicationSet
+metadata:
+  name: app-set
+spec:
+  goTemplate: true
+  generators:
+    - list:
+        elements:
+          - env: dev
+            namespace: incident-dev
+          - env: staging
+            namespace: incident-staging
+  template:
+    metadata:
+      name: incident-app-{{.env}}
+    spec:
+      project: incident-platform
+      source:
+        repoURL: https://github.com/Karnz1/incident_platform.git
+        targetRevision: main
+        path: k8s/inci-plat
+        helm:
+          valueFiles:
+            - values.yaml
+            - values-{{.env}}.yaml
+      destination:
+        namespace: {{.namespace}}
+        server: https://kubernetes.default.svc
+      syncPolicy:
+        automated: { prine: true, selfHeal: true }
+        syncOptions: [ CreateNamespace=true ]

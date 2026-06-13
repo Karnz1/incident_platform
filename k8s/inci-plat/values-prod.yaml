@@ -1,2 +1,6 @@
 envName: prod
 replicaCount: 3
+
+ingress:
+  rps: 10
+  hostname: prod.local
