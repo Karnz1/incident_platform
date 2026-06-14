@@ -1,11 +1,11 @@
-name: promote to staging
+name: Promote to Staging
 
 on: workflow_dispatch
 permissions:
   contents: read
 
 jobs:
-  promotion-validation:
+  Helm-Templates-Validation:
     runs-on: ubuntu-latest
     environment: staging
 
@@ -26,5 +26,35 @@ jobs:
 
       - name: run validation
         run: helm template incident-app-staging k8s/inci-plat -f k8s/inci-plat/values.yaml -f k8s/inci-plat/values-staging.yaml | kubeconform -strict -summary
+  
+  Update-Image-Tag:
+    needs: Helm-Templates-Validation
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      contents: write
 
+    steps:
+      - name: Checkout Code
+        uses: actions\checkout@v4
+
+      - name: write tags to values-staging
+        run: |
+          for path in .api.image.tag .frontend.image.tag .worker.image.tag; do
+            value=$(yq "$path" ./k8s/inci-plat/values-dev.yaml)
+            yq -i "$path = \"$value\"" ./k8s/inci-plat/values-staging.yaml
+          done
+        
+      - name: Commit updated Helm values
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]"
+
+          git add k8s/inci-plat/values-staging.yaml
+          git commit -m "UPDATED image tags"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push && break
+            echo "Attempt $i failed, retrying in 5s..."
+            sleep 5
+          done
 
