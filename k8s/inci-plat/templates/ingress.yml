@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: "{{ .Release.Name }}-ingress"
   annotations:
-    nginx.ingress.kubernetes.io/limit-rps: {{ .Values.ingress.rps | default "10" | qoute }}
+    nginx.ingress.kubernetes.io/limit-rps: {{ .Values.ingress.rps | default "10" | quote }}
 spec:
   ingressClassName: nginx
   rules:
