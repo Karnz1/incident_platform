@@ -1,4 +1,4 @@
-name: Backend CI 
+name: Backend CICD
 #/ Lint - Test - Build - Push (Dev)
 
 on:

@@ -1,4 +1,4 @@
-name: Front CI
+name: Front CICD
 
 on:
   push:

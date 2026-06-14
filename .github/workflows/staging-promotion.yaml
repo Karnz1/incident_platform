@@ -1,0 +1,30 @@
+name: promote to staging
+
+on: workflow_dispatch
+permissions:
+  contents: read
+
+jobs:
+  promotion-validation:
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: setup-helm
+        uses: azure/setup-helm@v5.0.0
+
+      - name: Install kubeconform
+        run: |
+          LATEST=$(curl -s https://api.github.com/repos/yannh/kubeconform/releases/latest | grep -oP '"tag_name": "\K[^"]+')
+          curl -L -o kubeconform.tar.gz \
+          "https://github.com/yannh/kubeconform/releases/download/${LATEST}/kubeconform-linux-amd64.tar.gz"
+          tar -xzf kubeconform.tar.gz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: run validation
+        run: helm template incident-app-staging k8s/inci-plat -f k8s/inci-plat/values.yaml -f k8s/inci-plat/values-staging.yaml | kubeconform -strict -summary
+
+
