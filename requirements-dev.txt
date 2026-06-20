@@ -8,3 +8,4 @@ psycopg
 redis
 dotenv
 psycopg-pool
+prometheus-client

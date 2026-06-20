@@ -12,7 +12,3 @@ def dep_ready():
 def health_check():
     return {"status": "ok"}
 
-
-@health_router.get("/metrics")
-def get_metrics():
-    return "return prometheus metrics"

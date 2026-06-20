@@ -16,4 +16,5 @@ def test_metrics_endpoint_exists(client):
     response = client.get("/metrics")
 
     assert response.status_code == 200
-    assert response.json() == "return prometheus metrics"
+    assert "text/plain" in response.headers["content-type"]
+    assert "# HELP" in response.text

@@ -156,11 +156,11 @@ change to a running deployment in dev.
 - ✅ Adding ingress - enabling traffic from my machine to the application
 
 ### Phase 4 — Environment Promotion ⬜
-- 🚧 Promotion pipeline: dev → staging → prod
+- ✅ Promotion pipeline: dev → staging → prod
 
 ### Phase 5 — Observability ⬜
-- ⬜ Real Prometheus metrics from the API and worker (`/metrics`)
-- ⬜ Grafana dashboards for key signals (request rate, queue depth, processing latency)
+- 🚧 Real Prometheus metrics from the API and worker (`/metrics`)
+- 🚧 Grafana dashboards for key signals (request rate, queue depth, processing latency)
 
 ### Phase 6 — Cloud + Infrastructure-as-Code ⬜
 - ⬜ Provision equivalent infrastructure on AWS with Terraform

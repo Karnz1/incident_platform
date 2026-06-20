@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from .routes.incidents import incident_router
 from .routes.health import health_router
+from prometheus_client import make_asgi_app
+import metrics
 from .db import init_pg_pool, close_pg_pool, init_redis, close_redis
 import os
 
@@ -21,6 +23,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+app.mount("/metrics", make_asgi_app())
 
 app.add_middleware(
     CORSMiddleware,
