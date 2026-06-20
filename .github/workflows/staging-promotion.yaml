@@ -1,6 +1,7 @@
 name: Promote to Staging
 
 on: workflow_dispatch
+
 permissions:
   contents: read
 
@@ -36,7 +37,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions\checkout@v4
+        uses: actions/checkout@v4
 
       - name: write tags to values-staging
         run: |
