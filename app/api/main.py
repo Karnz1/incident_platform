@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from .routes.incidents import incident_router
 from .routes.health import health_router
 from prometheus_client import make_asgi_app
-import metrics
+import metrics # noqa: F401 — importing registers the metrics
 from .db import init_pg_pool, close_pg_pool, init_redis, close_redis
 import os
 
