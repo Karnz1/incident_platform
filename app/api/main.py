@@ -8,7 +8,6 @@ from api import metrics # noqa: F401 — importing registers the metrics
 from .db import init_pg_pool, close_pg_pool, init_redis, close_redis
 import os
 
-print("this is a test")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -89,6 +89,7 @@ jobs:
         run: |
           export IMAGE_TAG="sha-${GITHUB_SHA::7}"
           yq -i '.api.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values.yaml
+          yq -i '.api.image.tag = strenv(IMAGE_TAG)' k8s/inci-plat/values-dev.yaml
 
       - name: Commit updated Helm values
         run: |
@@ -96,6 +97,7 @@ jobs:
           git config user.email "github-actions[bot]"
 
           git add k8s/inci-plat/values.yaml
+          git add k8s/inci-plat/values-dev.yaml
           git commit -m "UPDATED api image tag"
           for i in 1 2 3; do
             git pull --rebase origin main && git push && break
