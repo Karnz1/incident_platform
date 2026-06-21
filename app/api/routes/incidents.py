@@ -3,6 +3,7 @@ from psycopg import AsyncConnection
 import redis.asyncio as redis
 from ..models.schemas import IncidentCreate, Severity
 from ..db import get_pg_db, get_redis_client
+from ..metrics import incidents_created
 
 # constants
 INCIDENT_REVIEW_QUEUE = "queues:incident_review"
@@ -59,6 +60,7 @@ async def create_incident(
         row = await cur.fetchone()
 
     await pg.commit()
+    incidents_created.inc()
     incident_id = row["id"]
 
     await redis_client.rpush(
