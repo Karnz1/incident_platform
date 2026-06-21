@@ -3,7 +3,7 @@ api:
   image:
     repository: xazmo/incident-api
     pullPolicy: IfNotPresent
-    tag: "sha-250423c"
+    tag: "sha-fae120d"
   replicaCount: 1
   revisionHistoryLimit: 3
 #Frontend Values
@@ -28,8 +28,6 @@ redis:
 #Postgres Values
 postgres:
   replicaCount: 1
-
 ingress:
   rps: 10
   hostname: dev.local
-  
