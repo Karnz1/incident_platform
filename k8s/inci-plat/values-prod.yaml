@@ -1,4 +1,5 @@
 envName: prod
+namespace: incident-prod
 replicaCount: 3
 
 ingress:

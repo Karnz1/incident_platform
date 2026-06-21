@@ -1,4 +1,5 @@
 
+namespace: incident-dev
 #API Values
 api:
   image:

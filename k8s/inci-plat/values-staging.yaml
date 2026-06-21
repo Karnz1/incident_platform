@@ -1,4 +1,5 @@
 envName: staging
+namespace: incident-staging
 api:
   image:
     repository: xazmo/incident-api
