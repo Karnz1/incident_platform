@@ -1,3 +1,4 @@
+apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
   name: app-set
@@ -12,7 +13,7 @@ spec:
             namespace: incident-staging
   template:
     metadata:
-      name: incident-app-{{.env}}
+      name: 'incident-app-{{.env}}'
     spec:
       project: incident-platform
       source:
@@ -24,8 +25,8 @@ spec:
             - values.yaml
             - values-{{.env}}.yaml
       destination:
-        namespace: {{.namespace}}
+        namespace: '{{.namespace}}'
         server: https://kubernetes.default.svc
       syncPolicy:
-        automated: { prine: true, selfHeal: true }
+        automated: { prune: true, selfHeal: true }
         syncOptions: [ CreateNamespace=true ]

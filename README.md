@@ -159,11 +159,11 @@ change to a running deployment in dev.
 - ✅ Promotion pipeline: dev → staging → prod
 
 ### Phase 5 — Observability ⬜
-- 🚧 Real Prometheus metrics from the API and worker (`/metrics`)
-- 🚧 Grafana dashboards for key signals (request rate, queue depth, processing latency)
+- ✅ Real Prometheus metrics from the API and worker (`/metrics`)
+- ✅ Grafana dashboards for key signals
 
 ### Phase 6 — Cloud + Infrastructure-as-Code ⬜
-- ⬜ Provision equivalent infrastructure on AWS with Terraform
+- 🚧 Provision equivalent infrastructure on AWS with Terraform
 
 ### Phase 7 — Resilience & State Reconciliation ⬜
 - ⬜ Reconciler that keeps Redis in sync with PostgreSQL (the source of truth), so the
